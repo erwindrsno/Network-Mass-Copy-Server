@@ -137,7 +137,7 @@ public class Server extends WebSocketServer {
                             break;
 
                         case "send":
-                            File file = new File("T06xxyyy.zip");
+                            File file = new File("files/T06xxyyy.zip");
                             this.fileHandler = new FileHandler(this, file);
                             this.fileHandler.sendFileMetadata();
                             break;

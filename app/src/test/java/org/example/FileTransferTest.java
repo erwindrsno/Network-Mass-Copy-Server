@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class FileTransferTest {
-    File file = new File("T06xxyyy.zip");
+    File file = new File("files/T06xxyyy.zip");
     long fileSize = file.length();
     long chunkSize = 10240;
 
@@ -18,7 +18,7 @@ public class FileTransferTest {
     @Test
     public void transfer() {
         if (!file.exists()) {
-            // fail("File T06xxyyy.zip does not exist sadly");
+            fail("File T06xxyyy.zip does not exist sadly");
         }
 
         try (FileInputStream fis = new FileInputStream(file)) {
