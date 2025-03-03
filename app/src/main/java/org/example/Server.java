@@ -110,7 +110,8 @@ public class Server extends WebSocketServer {
             logger.info("Command receiver thread started");
             while (true) {
                 if (sc.hasNext()) {
-                    String command = sc.next();
+                    String command = sc.nextLine();
+                    logger.info("The command is : " + command);
                     switch (command) {
                         case "ping":
                             broadcast("PING");
@@ -139,6 +140,7 @@ public class Server extends WebSocketServer {
                         case "send":
                             File file = new File("files/T06xxyyy.zip");
                             this.fileHandler = new FileHandler(this, file);
+                            System.out.println("Is file exist : " + file.exists());
                             this.fileHandler.sendFileMetadata();
                             break;
                     }

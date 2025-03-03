@@ -59,7 +59,7 @@ public class FileHandler {
     public void sendFileMetadata() {
         logger.info("SENDING FILE META DATA");
         try {
-            Path filePath = Paths.get(file.getName());
+            Path filePath = Paths.get("files/" + file.getName());
 
             // hashing
             String signature = Hashing.sha256().hashBytes(Files.readAllBytes(filePath)).toString();
