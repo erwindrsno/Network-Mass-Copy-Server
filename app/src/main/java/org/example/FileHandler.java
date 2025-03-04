@@ -21,6 +21,12 @@ import com.google.common.hash.Hashing;
 import org.example.model.Acl;
 import org.example.model.FileMetadata;
 
+// Multifile sending
+// 1. Memastikan jumlah file yang ingin dikirim
+// 2. variabel jumlah file tsb akan ditaruh di metadata agar client dapat menyiapkan fileinpustream sesuai
+// dengan jumlah yang dibutuhkan
+// 3. Mekanisme protokol harus diubah sedikit.
+
 public class FileHandler {
     Server server;
     int CHUNK_SIZE = 10240;

@@ -56,7 +56,7 @@ public class Server extends WebSocketServer {
             l4.setClientConnection(connIp, conn);
         } else {
             connLocal = conn;
-            logger.info("Local IP is: " + connIp);
+            // logger.info("Incoming IP is: " + connIp);
         }
     }
 
@@ -111,7 +111,7 @@ public class Server extends WebSocketServer {
             while (true) {
                 if (sc.hasNext()) {
                     String command = sc.nextLine();
-                    logger.info("The command is : " + command);
+                    // logger.info("The command is : " + command);
                     switch (command) {
                         case "ping":
                             broadcast("PING");
@@ -140,7 +140,6 @@ public class Server extends WebSocketServer {
                         case "send":
                             File file = new File("files/T06xxyyy.zip");
                             this.fileHandler = new FileHandler(this, file);
-                            System.out.println("Is file exist : " + file.exists());
                             this.fileHandler.sendFileMetadata();
                             break;
                     }
@@ -163,11 +162,12 @@ public class Server extends WebSocketServer {
             l4.closeClientConnection(connIp);
         } else {
             connLocal = conn;
-            logger.info("Local IP is: " + connIp);
+            logger.info(connIp + " has disconnected due to ");
         }
-        System.out.println(
-                "closed " + conn.getRemoteSocketAddress().getAddress() + " with exit code " + code
-                        + " additional info: " + reason);
+        // System.out.println(
+        // "closed " + conn.getRemoteSocketAddress().getAddress() + " with exit code " +
+        // code
+        // + " additional info: " + reason);
     }
 
     public void pingLab(BaseLab lab) {
@@ -188,5 +188,5 @@ public class Server extends WebSocketServer {
     }
 }
 
-// ping harus periodic
+// kalo mau ping harus periodic
 // trigger onClose conenction
