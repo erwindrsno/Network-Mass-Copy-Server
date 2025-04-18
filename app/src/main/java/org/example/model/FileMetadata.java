@@ -30,6 +30,10 @@ public class FileMetadata {
         this.aclEntry = aclEntry;
     }
 
+    public FileMetadata() {
+
+    }
+
     public long getFileSize() {
         return this.fileSize;
     }

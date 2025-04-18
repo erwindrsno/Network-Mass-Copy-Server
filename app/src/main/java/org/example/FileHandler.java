@@ -28,58 +28,61 @@ import org.example.model.FileMetadata;
 // 3. Mekanisme protokol harus diubah sedikit.
 
 public class FileHandler {
-    Server server;
-    int CHUNK_SIZE = 10240;
-    Logger logger = LoggerFactory.getLogger(FileHandler.class);
-    File file;
+  Server server;
+  int CHUNK_SIZE = 10240;
+  Logger logger = LoggerFactory.getLogger(FileHandler.class);
+  File file;
 
-    Acl aclFetch = new Acl();
+  // Acl aclFetch = new Acl();
 
-    public FileHandler(Server server, File file) {
-        this.server = server;
-        this.file = file;
+  public FileHandler(Server server) {
+    this.server = server;
+  }
+
+  public void startSend() {
+    logger.info("SENDING FILE");
+
+    try (FileInputStream fileInputStream = new FileInputStream(this.file)) {
+      byte[] buffer = new byte[CHUNK_SIZE];
+      int bytesRead;
+
+      while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, bytesRead);
+        this.server.broadcast(byteBuffer);
+      }
+      logger.info("File sent");
+    } catch (Exception e) {
+      logger.error("Error at sending file");
+      System.err.println(e);
     }
+  }
 
-    public void startSend() {
-        if (!this.file.exists()) {
-            logger.error("File not found");
-            return;
-        }
-        logger.info("SENDING FILE");
-
-        try (FileInputStream fileInputStream = new FileInputStream(this.file)) {
-            byte[] buffer = new byte[CHUNK_SIZE];
-            int bytesRead;
-
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, bytesRead);
-                this.server.broadcast(byteBuffer);
-            }
-            logger.info("File sent");
-        } catch (Exception e) {
-            logger.error("Error at sending file");
-            System.err.println(e);
-        }
+  public void sendFileMetadata() {
+    if (!this.file.exists()) {
+      logger.error("File not found");
+      return;
     }
+    logger.info("SENDING FILE META DATA");
+    try {
+      Path filePath = Paths.get("files/" + this.file.getName());
 
-    public void sendFileMetadata() {
-        logger.info("SENDING FILE META DATA");
-        try {
-            Path filePath = Paths.get("files/" + file.getName());
+      // hashing
+      String signature = Hashing.sha256().hashBytes(Files.readAllBytes(filePath)).toString();
 
-            // hashing
-            String signature = Hashing.sha256().hashBytes(Files.readAllBytes(filePath)).toString();
+      // generate ACL
+      Set<AclEntryPermission> aclEntry = Acl.getRWXAcl();
 
-            // generate ACL
-            Set<AclEntryPermission> aclEntry = aclFetch.getRWXAcl();
-
-            FileMetadata fileMetadata = new FileMetadata(this.file.length(), this.CHUNK_SIZE, this.file.getName(),
-                    "car", signature, aclEntry);
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(fileMetadata);
-            this.server.broadcast("FILE-METADATA~" + json);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+      FileMetadata fileMetadata = new FileMetadata(this.file.length(), this.CHUNK_SIZE, this.file.getName(),
+          "i20002", signature, aclEntry);
+      ObjectMapper mapper = new ObjectMapper();
+      String json = mapper.writeValueAsString(fileMetadata);
+      this.server.broadcast("FILE-METADATA~" + json);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
+
+  public void setFile(File file) {
+    this.file = file;
+  }
 }

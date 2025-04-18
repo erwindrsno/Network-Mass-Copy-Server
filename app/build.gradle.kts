@@ -23,6 +23,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.protobuf:protobuf-java:4.30.0")
 
     // This dependency is used by the application.
     implementation(libs.guava)
