@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Set;
 import java.nio.file.attribute.AclEntryPermission;
@@ -47,7 +48,8 @@ public class FileHandler {
       int bytesRead;
 
       while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, bytesRead);
+        byte[] copy = Arrays.copyOf(buffer, bytesRead);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(copy);
         this.server.broadcast(byteBuffer);
       }
       logger.info("File sent");
