@@ -7,78 +7,89 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FileMetadata {
-    long fileSize;
-    long chunkSize;
+  long fileSize;
+  long chunkSize;
+  long chunkCount;
 
-    String fileName;
-    String user;
-    String signature;
-    Set<AclEntryPermission> aclEntry;
+  String fileName;
+  String user;
+  String signature;
+  Set<AclEntryPermission> aclEntry;
 
-    public FileMetadata(
-            @JsonProperty("fileSize") long fileSize,
-            @JsonProperty("chunkSize") long chunkSize,
-            @JsonProperty("fileName") String fileName,
-            @JsonProperty("user") String user,
-            @JsonProperty("signature") String signature,
-            @JsonProperty("aclEntry") Set<AclEntryPermission> aclEntry) {
-        this.fileSize = fileSize;
-        this.chunkSize = chunkSize;
-        this.fileName = fileName;
-        this.user = user;
-        this.signature = signature;
-        this.aclEntry = aclEntry;
-    }
+  public FileMetadata(
+      @JsonProperty("fileSize") long fileSize,
+      @JsonProperty("chunkSize") long chunkSize,
+      @JsonProperty("chunkCount") long chunkCount,
+      @JsonProperty("fileName") String fileName,
+      @JsonProperty("user") String user,
+      @JsonProperty("signature") String signature,
+      @JsonProperty("aclEntry") Set<AclEntryPermission> aclEntry) {
+    this.fileSize = fileSize;
+    this.chunkSize = chunkSize;
+    this.chunkCount = chunkCount;
+    this.fileName = fileName;
+    this.user = user;
+    this.signature = signature;
+    this.aclEntry = aclEntry;
+  }
 
-    public FileMetadata() {
+  public FileMetadata() {
 
-    }
+  }
 
-    public long getFileSize() {
-        return this.fileSize;
-    }
+  public long getFileSize() {
+    return this.fileSize;
+  }
 
-    public void setFileSize(long fileSize) {
-        this.fileSize = fileSize;
-    }
+  public void setFileSize(long fileSize) {
+    this.fileSize = fileSize;
+  }
 
-    public long getChunkSize() {
-        return this.chunkSize;
-    }
+  public long getChunkSize() {
+    return this.chunkSize;
+  }
 
-    public void setChunkSize(long chunkSize) {
-        this.chunkSize = chunkSize;
-    }
+  public void setChunkSize(long chunkSize) {
+    this.chunkSize = chunkSize;
+  }
 
-    public String getFileName() {
-        return this.fileName;
-    }
+  public long getChunkCount() {
+    return this.chunkCount;
+  }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
+  public void setChunkCount(long chunkCount) {
+    this.chunkCount = chunkCount;
+  }
 
-    public String getUser() {
-        return this.user;
-    }
+  public String getFileName() {
+    return this.fileName;
+  }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
 
-    public String getSignature() {
-        return this.signature;
-    }
+  public String getUser() {
+    return this.user;
+  }
 
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
+  public void setUser(String user) {
+    this.user = user;
+  }
 
-    public Set<AclEntryPermission> getAclEntry() {
-        return this.aclEntry;
-    }
+  public String getSignature() {
+    return this.signature;
+  }
 
-    public void setAclEntry(Set<AclEntryPermission> aclEntry) {
-        this.aclEntry = aclEntry;
-    }
+  public void setSignature(String signature) {
+    this.signature = signature;
+  }
+
+  public Set<AclEntryPermission> getAclEntry() {
+    return this.aclEntry;
+  }
+
+  public void setAclEntry(Set<AclEntryPermission> aclEntry) {
+    this.aclEntry = aclEntry;
+  }
 }

@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.nio.file.attribute.AclEntryPermission;
 
@@ -33,6 +35,8 @@ public class FileHandler {
   int CHUNK_SIZE = 10240;
   Logger logger = LoggerFactory.getLogger(FileHandler.class);
   File file;
+
+  Map<Integer, byte[]> bytesMap = new HashMap<>();
 
   // Acl aclFetch = new Acl();
 
@@ -74,7 +78,8 @@ public class FileHandler {
       // generate ACL
       Set<AclEntryPermission> aclEntry = Acl.getRWXAcl();
 
-      FileMetadata fileMetadata = new FileMetadata(this.file.length(), this.CHUNK_SIZE, this.file.getName(),
+      FileMetadata fileMetadata = new FileMetadata(this.file.length(), this.CHUNK_SIZE, this.bytesMap.size(),
+          this.file.getName(),
           "i20002", signature, aclEntry);
       ObjectMapper mapper = new ObjectMapper();
       String json = mapper.writeValueAsString(fileMetadata);
@@ -84,7 +89,33 @@ public class FileHandler {
     }
   }
 
+  public void filePreProcess() {
+    try (FileInputStream fileInputStream = new FileInputStream(this.file)) {
+      byte[] buffer = new byte[CHUNK_SIZE];
+      int bytesRead;
+
+      int idx = 0;
+      while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+        byte[] copy = Arrays.copyOf(buffer, bytesRead);
+        this.bytesMap.put(idx, copy);
+        idx++;
+      }
+    } catch (Exception e) {
+      System.err.println(e);
+    }
+  }
+
   public void setFile(File file) {
     this.file = file;
+  }
+
+  public ByteBuffer getChunkById(int chunkId) {
+    try {
+      ByteBuffer byteBuffer = ByteBuffer.wrap(this.bytesMap.get(chunkId));
+      return byteBuffer;
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      return null;
+    }
   }
 }

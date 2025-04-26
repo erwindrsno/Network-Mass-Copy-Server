@@ -75,6 +75,10 @@ public class Server extends WebSocketServer {
       }
     } else if (message.equals("READY-FILE~")) {
       this.fileHandler.startSend();
+    } else if (message.startsWith("CHUNK-ID~")) {
+      int chunkId = Integer.parseInt(message.substring(9));
+      ByteBuffer byteBuffer = this.fileHandler.getChunkById(chunkId);
+      conn.send(byteBuffer);
     }
   }
 
@@ -138,6 +142,7 @@ public class Server extends WebSocketServer {
             case "send":
               File file = new File("files/T06xxyyy.zip");
               this.fileHandler.setFile(file);
+              this.fileHandler.filePreProcess();
               this.fileHandler.sendFileMetadata();
               break;
 
