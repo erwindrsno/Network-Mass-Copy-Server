@@ -44,25 +44,6 @@ public class FileHandler {
     this.server = server;
   }
 
-  public void startSend() {
-    logger.info("SENDING FILE");
-
-    try (FileInputStream fileInputStream = new FileInputStream(this.file)) {
-      byte[] buffer = new byte[CHUNK_SIZE];
-      int bytesRead;
-
-      while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-        byte[] copy = Arrays.copyOf(buffer, bytesRead);
-        ByteBuffer byteBuffer = ByteBuffer.wrap(copy);
-        this.server.broadcast(byteBuffer);
-      }
-      logger.info("File sent");
-    } catch (Exception e) {
-      logger.error("Error at sending file");
-      System.err.println(e);
-    }
-  }
-
   public void sendFileMetadata() {
     if (!this.file.exists()) {
       logger.error("File not found");
@@ -78,12 +59,13 @@ public class FileHandler {
       // generate ACL
       Set<AclEntryPermission> aclEntry = Acl.getRWXAcl();
 
-      FileMetadata fileMetadata = new FileMetadata(this.file.length(), this.CHUNK_SIZE, this.bytesMap.size(),
-          this.file.getName(),
-          "i20002", signature, aclEntry);
+      // FileMetadata fileMetadata = new FileMetadata(this.file.length(),
+      // this.CHUNK_SIZE, this.bytesMap.size(),
+      // this.file.getName(),
+      // "i20002", signature, aclEntry);
       ObjectMapper mapper = new ObjectMapper();
-      String json = mapper.writeValueAsString(fileMetadata);
-      this.server.broadcast("FILE-METADATA~" + json);
+      // String json = mapper.writeValueAsString(fileMetadata);
+      // this.server.broadcast("FILE-METADATA~" + json);
     } catch (Exception e) {
       e.printStackTrace();
     }
