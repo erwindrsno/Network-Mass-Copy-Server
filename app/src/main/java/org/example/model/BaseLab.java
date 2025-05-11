@@ -1,9 +1,6 @@
 package org.example.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.java_websocket.WebSocket;

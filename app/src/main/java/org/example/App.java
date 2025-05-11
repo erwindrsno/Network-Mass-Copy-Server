@@ -1,18 +1,16 @@
 package org.example;
 
-import java.net.InetSocketAddress;
-
-import org.java_websocket.server.WebSocketServer;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class App {
   public static void main(String[] args) {
-    // String host = "10.100.70.60";
-    // String host = "10.100.70.211";
-    String host = "192.168.0.106";
-    // String host = "10.100.75.112";
-    int port = 8887;
+    Injector injector = Guice.createInjector(new WebSocketModule());
+    WebServerHandler webServerHandler = injector.getInstance(WebServerHandler.class);
+    WebClientHandler webClientHandler = injector.getInstance(WebClientHandler.class);
+    Server server = injector.getInstance(Server.class);
 
-    WebSocketServer server = new Server(new InetSocketAddress(host, port));
+    server.injectDependencies(webServerHandler, webClientHandler);
     server.run();
   }
 }

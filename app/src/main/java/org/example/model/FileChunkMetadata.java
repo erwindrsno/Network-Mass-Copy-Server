@@ -30,5 +30,5 @@ public class FileChunkMetadata {
   String signature;
 
   @JsonIgnore
-  Map<Integer, byte[]> mapsOfChunk;
+  Map<Long, byte[]> mapOfChunks;
 }
