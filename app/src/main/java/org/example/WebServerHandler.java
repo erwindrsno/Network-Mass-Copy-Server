@@ -1,9 +1,14 @@
 package org.example;
 
+import static org.example.util.IpAddrExtractor.IP_EXTRACTOR;
+
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.example.model.Context;
 import org.example.model.FileAccessInfo;
@@ -13,12 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
 public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolder {
   private WebSocket conn;
+  private Server server;
   private Integer port;
 
+  private Context context;
   private List<FileChunkMetadata> listFcm;
   private int fileCounter;
   private long chunkCounter;
@@ -27,10 +35,13 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   private Logger logger;
 
   @Inject
-  public WebServerHandler(FileVerifier fileVerifier) {
+  public WebServerHandler(FileVerifier fileVerifier, Server server) {
     this.conn = null;
+    this.server = server;
     this.port = null;
+    this.context = null;
     this.fileVerifier = fileVerifier;
+    this.listFcm = null;
     this.logger = LoggerFactory.getLogger(WebServerHandler.class);
   }
 
@@ -63,6 +74,8 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
           this.fileCounter = 0;
           this.readyToReceive = false;
           logger.info("All files received.");
+
+          this.sendFilesToClients();
           return;
         } else {
           this.fileCounter++;
@@ -85,9 +98,8 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       ObjectMapper mapper = new ObjectMapper();
 
       try {
-        Context context = mapper.readValue(json, Context.class);
-        List<FileAccessInfo> listFai = context.getListFai();
-        this.listFcm = context.getListFcm();
+        this.context = mapper.readValue(json, Context.class);
+        this.listFcm = this.context.getListFcm();
 
         this.fileCounter = 0;
         this.chunkCounter = 0;
@@ -103,8 +115,6 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       } catch (Exception e) {
         e.printStackTrace();
       }
-    } else if (message.equals("active-computers")) {
-      // TODO
     }
   }
 
@@ -128,5 +138,52 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       return this.port;
     }
     return null;
+  }
+
+  public void sendFilesToClients() {
+    Collection<WebSocket> connections = this.server.getConnections();
+
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.enable(SerializationFeature.INDENT_OUTPUT); // pretty print
+
+      // String json = mapper.writeValueAsString(this.context);
+      // logger.info(json);
+
+      // List<String> listTargetCopyIpAddr = this.context.getListFai().stream()
+      // .map(FileAccessInfo::getIp_address)
+      // .collect(Collectors.toList());
+
+      Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
+          .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
+
+      connections.stream()
+          .filter(conn -> conn.isOpen())
+          .filter(conn -> {
+            String ip = IP_EXTRACTOR.extract(conn);
+            return !ip.equals("10.100.70.211") && groupedByIp.containsKey(ip);
+          })
+          .forEach(conn -> {
+            String ip = IP_EXTRACTOR.extract(conn);
+            List<FileAccessInfo> listFaiPerClient = groupedByIp.getOrDefault(ip, Collections.emptyList());
+
+            if (!listFaiPerClient.isEmpty()) {
+              Context clientContext = Context.builder()
+                  .listFai(listFaiPerClient)
+                  .listFcm(this.context.getListFcm())
+                  .build();
+
+              try {
+                String json = mapper.writeValueAsString(clientContext);
+                conn.send("server/metadata/" + json);
+              } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+              }
+            }
+          });
+    } catch (Exception e) {
+      logger.error(e.getMessage(), e);
+    }
+
   }
 }

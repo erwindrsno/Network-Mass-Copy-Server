@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.example.util.IpAddrExtractor.IP_EXTRACTOR;
+
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,19 +58,33 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
         String ipPrefix = "10.100.7" + labNumber;
 
         connections.stream()
-            .map(conn -> new AbstractMap.SimpleEntry<>(conn,
-                conn.getRemoteSocketAddress().getAddress().getHostAddress()))
-            .filter(entry -> !entry.getValue().equals("192.168.0.106")) // exclude
-            .filter(entry -> entry.getValue().startsWith(ipPrefix)) // filter by prefix
-            .forEach(entry -> {
-              WebSocket conn = entry.getKey();
-              String ip = entry.getValue();
+            .filter(conn -> !IP_EXTRACTOR.extract(conn).equals("10.100.70.211")) // exclude
+            .filter(
+                conn -> IP_EXTRACTOR.extract(conn).startsWith(ipPrefix)) // filter
+            .forEach(conn -> {
+              String ip_addr = IP_EXTRACTOR.extract(conn);
               if (conn.isOpen()) {
-                openedIpAddressList.add(ip);
-              } else if (conn.isClosed() && openedIpAddressList.contains(ip)) {
-                openedIpAddressList.remove(ip);
+
+                openedIpAddressList.add(ip_addr);
+              } else if (conn.isClosed() && openedIpAddressList.contains(ip_addr)) {
+                openedIpAddressList.remove(ip_addr);
               }
             });
+
+        // connections.stream()
+        // .map(conn -> new AbstractMap.SimpleEntry<>(conn,
+        // conn.getRemoteSocketAddress().getAddress().getHostAddress()))
+        // .filter(entry -> !entry.getValue().equals("10.100.70.211")) // exclude
+        // .filter(entry -> entry.getValue().startsWith(ipPrefix)) // filter by prefix
+        // .forEach(entry -> {
+        // WebSocket conn = entry.getKey();
+        // String ip = entry.getValue();
+        // if (conn.isOpen()) {
+        // openedIpAddressList.add(ip);
+        // } else if (conn.isClosed() && openedIpAddressList.contains(ip)) {
+        // openedIpAddressList.remove(ip);
+        // }
+        // });
 
         // simulation
         // for (int i = 1; i <= 40; i++) {

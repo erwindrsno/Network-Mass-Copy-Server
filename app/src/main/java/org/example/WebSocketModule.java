@@ -14,7 +14,7 @@ import com.google.inject.name.Names;
 public class WebSocketModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(String.class).annotatedWith(Names.named("host")).toInstance("192.168.0.106");
+    bind(String.class).annotatedWith(Names.named("host")).toInstance("10.100.70.211");
     bind(Integer.class).annotatedWith(Names.named("port")).toInstance(8887);
     bind(FileVerifier.class).in(Singleton.class);
     bind(WebServerHandler.class).in(Singleton.class);

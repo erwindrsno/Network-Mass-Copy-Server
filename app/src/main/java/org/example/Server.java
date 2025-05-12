@@ -1,23 +1,18 @@
 package org.example;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static org.example.util.IpAddrExtractor.IP_EXTRACTOR;
 
 import org.example.model.BaseLab;
-import org.example.model.BaseLab.Client;
-import org.example.model.Context;
 import org.example.model.FileAccessInfo;
-import org.example.model.FileChunkMetadata;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -66,7 +61,7 @@ public class Server extends WebSocketServer {
       l3.setClientConnection(connIp, conn);
     } else if (connIp.startsWith("10.100.74")) {
       l4.setClientConnection(connIp, conn);
-    } else if (connIp.equals("192.168.0.106")) {
+    } else if (connIp.equals("10.100.70.211")) {
       if (this.webServerHandler.getConnection() == null) {
         this.webServerHandler.setConnection(conn, port);
         logger.info("WebServer conn is set.");
@@ -158,7 +153,7 @@ public class Server extends WebSocketServer {
       l3.closeClientConnection(connIp);
     } else if (connIp.startsWith("10.100.74")) {
       l4.closeClientConnection(connIp);
-    } else if (connIp.equals("192.168.0.106")) {
+    } else if (connIp.equals("10.100.70.211")) {
       if (port == this.webServerHandler.getPortNumber()) {
         this.webServerHandler.setConnection(null, null);
         logger.info("Web server conn is closed.");
@@ -172,20 +167,10 @@ public class Server extends WebSocketServer {
     }
   }
 
-  public void pingLab(BaseLab lab) {
-    ConcurrentHashMap<String, Client> clients = lab.getClients();
-    Iterator<Map.Entry<String, Client>> iterator = clients.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, Client> entry = iterator.next();
-      WebSocket conn = entry.getValue().getConn();
-      if (conn != null) {
-        conn.send("PING");
-      }
-      // else: tampilkan yang belum terhubung
-    }
-  }
-
   public void pingLocal() {
     // this.connLocal.send("PING");
+  }
+
+  public void startSendFilesToClients(List<FileAccessInfo> listFai) {
   }
 }
