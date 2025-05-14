@@ -4,11 +4,13 @@
 package org.example;
 
 import org.junit.jupiter.api.Test;
+import org.websocket_server.App;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AppTest {
-    @Test
-    void appHasAGreeting() {
-        App classUnderTest = new App();
-    }
+  @Test
+  void appHasAGreeting() {
+    App classUnderTest = new App();
+  }
 }

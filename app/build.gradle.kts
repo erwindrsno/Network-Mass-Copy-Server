@@ -22,6 +22,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     implementation("com.google.inject:guice:7.0.0")
+    implementation("io.github.cdimascio:dotenv-java:3.2.0")
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
 
@@ -41,7 +42,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "org.websocket_server.App"
 }
 
 tasks.jar{
