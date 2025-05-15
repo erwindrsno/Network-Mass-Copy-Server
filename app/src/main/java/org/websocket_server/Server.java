@@ -115,4 +115,16 @@ public class Server extends WebSocketServer {
       logger.info(connIp + " has disconnected");
     }
   }
+
+  public WebSocketClientHandler getWsClientHandler() {
+    return this.webSocketClientHandler;
+  }
+
+  public WebServerHandler getWebServerHandler() {
+    return this.webServerHandler;
+  }
+
+  public WebClientHandler getWebClientHandler() {
+    return this.webClientHandler;
+  }
 }

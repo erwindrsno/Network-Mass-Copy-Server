@@ -10,28 +10,21 @@ import org.slf4j.LoggerFactory;
 import org.websocket_server.Server;
 import org.websocket_server.model.Context;
 import org.websocket_server.model.FileChunkMetadata;
-import static org.websocket_server.util.IpAddrExtractor.IP_EXTRACTOR;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 public class WebSocketClientHandler implements MessageHandlerStrategy {
   private Logger logger;
   private Server server;
-  private WebClientHandler webClientHandler;
   private Context context;
   private ObjectMapper objectMapper;
-  private Dotenv dotenv;
 
   @Inject
-  public WebSocketClientHandler(Server server, WebClientHandler webClientHandler, Dotenv dotenv) {
+  public WebSocketClientHandler(Server server) {
     this.logger = LoggerFactory.getLogger(WebServerHandler.class);
     this.server = server;
-    this.webClientHandler = webClientHandler;
     this.context = null;
-    this.dotenv = dotenv;
     this.objectMapper = new ObjectMapper();
   }
 
@@ -55,8 +48,6 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
 
       String requestedFileUuid = leftPart.split("~")[1];
       Long chunkId = Long.parseLong(rightPart);
-      logger.info("receiveFileUuid: " + requestedFileUuid);
-      logger.info("chunkId: " + chunkId);
 
       FileChunkMetadata requestedFcm = this.context.getListFcm().stream()
           .filter(fcm -> fcm.getUuid().equals(requestedFileUuid))
@@ -70,19 +61,15 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
     } else if (message.startsWith("ok/")) {
       try {
         logger.info("Sending notif");
-        String filename = message.substring(3);
+        String strFileId = message.substring(3);
         String receivedIpAddr = conn.getRemoteSocketAddress().getAddress().getHostAddress();
 
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("entry_id", this.context.getEntryId() + "");
-        jsonMap.put("filename", filename);
+        jsonMap.put("file_id", strFileId);
         jsonMap.put("ip_addr", receivedIpAddr);
         String json = this.objectMapper.writeValueAsString(jsonMap);
-        this.server.getConnections().stream()
-            .filter(
-                connection -> IP_EXTRACTOR.extract(connection).equals(this.dotenv.get("LOCAL_WEBSOCKET_IP")))
-            .findFirst()
-            .ifPresent(connection -> connection.send("ok/" + json));
+        this.server.getWebServerHandler().getConnection().send("ok/" + json);
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       }

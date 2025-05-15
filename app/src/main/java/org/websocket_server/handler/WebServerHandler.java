@@ -30,7 +30,6 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   private WebSocket conn;
   private Server server;
   private Integer port;
-  private WebSocketClientHandler webSocketClientHandler;
 
   private Context context;
   private List<FileChunkMetadata> listFcm;
@@ -43,14 +42,13 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   Dotenv dotenv;
 
   @Inject
-  public WebServerHandler(FileVerifier fileVerifier, Server server, WebSocketClientHandler webSocketClientHandler,
+  public WebServerHandler(FileVerifier fileVerifier, Server server,
       Dotenv dotenv) {
     this.conn = null;
     this.server = server;
     this.port = null;
     this.context = null;
     this.fileVerifier = fileVerifier;
-    this.webSocketClientHandler = webSocketClientHandler;
     this.listFcm = null;
     this.mapper = new ObjectMapper();
     this.dotenv = dotenv;
@@ -93,7 +91,7 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
           logger.info("All files received.");
 
           this.sendFilesToClients();
-          this.webSocketClientHandler.setContext(this.context);
+          this.server.getWsClientHandler().setContext(this.context);
           return;
         } else {
           this.fileCounter++;
@@ -132,6 +130,8 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       } catch (Exception e) {
         e.printStackTrace();
       }
+    } else if (message.startsWith("to-webclient/refetch")) {
+      this.server.getWebClientHandler().getConnection().send("refetch");
     }
   }
 

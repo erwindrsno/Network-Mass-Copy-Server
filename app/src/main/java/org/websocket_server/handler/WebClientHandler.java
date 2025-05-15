@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import java.util.Random;
 
 public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolder {
   private WebSocket conn;
