@@ -102,7 +102,7 @@ public class Server extends WebSocketServer {
     String hostname = conn.getRemoteSocketAddress().getHostName();
     int port = conn.getRemoteSocketAddress().getPort();
 
-    if (connIp.equals("10.100.70.211")) {
+    if (connIp.equals(dotenv.get("LOCAL_WEBSOCKET_IP"))) {
       if (port == this.webServerHandler.getPortNumber()) {
         this.webServerHandler.setConnection(null, null);
         logger.info("Web server conn is closed.");

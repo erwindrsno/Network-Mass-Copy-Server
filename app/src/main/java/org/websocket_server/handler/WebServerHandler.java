@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.websocket_server.Server;
 import org.websocket_server.model.Context;
+import org.websocket_server.model.DirectoryAccessInfo;
 import org.websocket_server.model.FileAccessInfo;
 import org.websocket_server.model.FileChunkMetadata;
 import org.websocket_server.util.ConnectionHolder;
@@ -109,8 +110,8 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
 
   @Override
   public void handleString(String message) {
-    if (message.startsWith("metadata/")) {
-      String json = message.substring(9);
+    if (message.startsWith("metadata/copy/")) {
+      String json = message.substring(14);
 
       try {
         this.context = this.mapper.readValue(json, Context.class);
@@ -129,6 +130,46 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
             "CHUNK-ID~" + this.chunkCounter);
       } catch (Exception e) {
         e.printStackTrace();
+      }
+    } else if (message.startsWith("metadata/takeown/")) {
+      String json = message.substring(17);
+      try {
+        this.context = this.mapper.readValue(json, Context.class);
+
+        Collection<WebSocket> connections = this.server.getConnections();
+        Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
+            .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
+
+        connections.stream()
+            .filter(conn -> conn.isOpen())
+            .filter(conn -> {
+              String ip = IP_EXTRACTOR.extract(conn);
+              return !ip.equals(dotenv.get("LOCAL_WEBSOCKET_IP")) && groupedByIp.containsKey(ip);
+            })
+            .forEach(conn -> {
+              String ip = IP_EXTRACTOR.extract(conn);
+              List<FileAccessInfo> listFaiPerClient = groupedByIp.getOrDefault(ip, Collections.emptyList());
+
+              List<DirectoryAccessInfo> listDaiPerClient = this.context.getListDai().stream()
+                  .filter(dai -> dai.getId().equals(listFaiPerClient.get(0).getDirectoryId()))
+                  .collect(Collectors.toList());
+
+              if (!listFaiPerClient.isEmpty()) {
+                Context clientContext = Context.builder()
+                    .listFai(listFaiPerClient)
+                    .listDai(listDaiPerClient)
+                    .build();
+
+                try {
+                  String toBeSendJson = this.mapper.writeValueAsString(clientContext);
+                  conn.send("server/metadata/takeown/" + toBeSendJson);
+                } catch (Exception e) {
+                  logger.error(e.getMessage(), e);
+                }
+              }
+            });
+      } catch (Exception e) {
+        logger.error(e.getMessage(), e);
       }
     } else if (message.startsWith("to-webclient/refetch")) {
       this.server.getWebClientHandler().getConnection().send("refetch");
@@ -165,8 +206,6 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
     Collection<WebSocket> connections = this.server.getConnections();
 
     try {
-      this.mapper.enable(SerializationFeature.INDENT_OUTPUT); // pretty print
-
       Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
           .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
 
@@ -179,16 +218,21 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
           .forEach(conn -> {
             String ip = IP_EXTRACTOR.extract(conn);
             List<FileAccessInfo> listFaiPerClient = groupedByIp.getOrDefault(ip, Collections.emptyList());
+            List<DirectoryAccessInfo> listDaiPerClient = this.context.getListDai().stream()
+                .filter(dai -> dai.getId().equals(listFaiPerClient.get(0).getDirectoryId()))
+                .collect(Collectors.toList());
 
             if (!listFaiPerClient.isEmpty()) {
               Context clientContext = Context.builder()
                   .listFai(listFaiPerClient)
+                  .listDai(listDaiPerClient)
                   .listFcm(this.context.getListFcm())
                   .build();
 
               try {
                 String json = this.mapper.writeValueAsString(clientContext);
-                conn.send("server/metadata/" + json);
+                logger.info("Sending metadata to client...");
+                conn.send("server/metadata/copy/" + json);
               } catch (Exception e) {
                 logger.error(e.getMessage(), e);
               }

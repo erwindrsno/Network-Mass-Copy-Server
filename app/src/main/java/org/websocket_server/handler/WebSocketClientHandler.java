@@ -12,20 +12,22 @@ import org.websocket_server.model.Context;
 import org.websocket_server.model.FileChunkMetadata;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
 public class WebSocketClientHandler implements MessageHandlerStrategy {
   private Logger logger;
   private Server server;
   private Context context;
-  private ObjectMapper objectMapper;
+  private ObjectMapper mapper;
 
   @Inject
   public WebSocketClientHandler(Server server) {
     this.logger = LoggerFactory.getLogger(WebServerHandler.class);
     this.server = server;
     this.context = null;
-    this.objectMapper = new ObjectMapper();
+    this.mapper = new ObjectMapper();
+    this.mapper.enable(SerializationFeature.INDENT_OUTPUT);
   }
 
   @Override
@@ -60,16 +62,31 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
 
     } else if (message.startsWith("ok/")) {
       try {
-        logger.info("Sending notif");
-        String strFileId = message.substring(3);
-        String receivedIpAddr = conn.getRemoteSocketAddress().getAddress().getHostAddress();
+        if (message.substring(3).startsWith("copy/")) {
+          logger.info(message.substring(8));
+          String strFileId = message.substring(8);
+          String receivedIpAddr = conn.getRemoteSocketAddress().getAddress().getHostAddress();
 
-        Map<String, String> jsonMap = new HashMap<>();
-        jsonMap.put("entry_id", this.context.getEntryId() + "");
-        jsonMap.put("file_id", strFileId);
-        jsonMap.put("ip_addr", receivedIpAddr);
-        String json = this.objectMapper.writeValueAsString(jsonMap);
-        this.server.getWebServerHandler().getConnection().send("ok/" + json);
+          Map<String, String> jsonMap = new HashMap<>();
+          jsonMap.put("file_id", strFileId);
+          jsonMap.put("ip_addr", receivedIpAddr);
+          String json = this.mapper.writeValueAsString(jsonMap);
+          this.server.getWebServerHandler().getConnection().send("ok/" + json);
+        }
+      } catch (Exception e) {
+        logger.error(e.getMessage(), e);
+      }
+    } else if (message.startsWith("fin/")) {
+      try {
+        if (message.substring(4).startsWith("copy/")) {
+          Integer directoryId = Integer.parseInt(message.substring(9));
+
+          this.server.getWebServerHandler().getConnection().send("fin/copy/" + directoryId);
+        } else if (message.substring(4).startsWith("takeown/")) {
+          Integer directoryId = Integer.parseInt(message.substring(12));
+
+          this.server.getWebServerHandler().getConnection().send("fin/takeown/" + directoryId);
+        }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       }

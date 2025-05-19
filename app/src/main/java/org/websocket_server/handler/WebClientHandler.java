@@ -66,18 +66,6 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
               }
             });
 
-        // simulation
-        // for (int i = 1; i <= 40; i++) {
-        // boolean isActive = this.rand.nextBoolean();
-        // if (isActive) {
-        // if (i >= 10) {
-        // openedIpAddressList.add("10.100.71.2" + i);
-        // } else {
-        // openedIpAddressList.add("10.100.71.20" + i);
-        // }
-        // }
-        // }
-
         String json = mapper.writeValueAsString(openedIpAddressList);
         this.conn.send("monitor/" + json);
       } catch (Exception e) {

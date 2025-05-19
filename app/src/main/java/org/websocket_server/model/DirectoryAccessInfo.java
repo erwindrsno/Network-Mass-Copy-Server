@@ -12,26 +12,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonDeserialize(builder = FileAccessInfo.FileAccessInfoBuilder.class)
-public class FileAccessInfo {
+@JsonDeserialize(builder = DirectoryAccessInfo.DirectoryAccessInfoBuilder.class)
+public class DirectoryAccessInfo {
   @JsonProperty("id")
   Integer id;
 
   @JsonProperty("path")
   String path;
 
+  @JsonProperty("file_count")
+  Integer fileCount;
+
+  @JsonProperty("copied")
+  Integer copied;
+
   @JsonProperty("owner")
   String owner;
-
-  @JsonProperty("permissions")
-  int permissions;
-
-  @JsonProperty("ip_address")
-  String ip_address;
-
-  @JsonProperty("file_name")
-  String filename;
-
-  @JsonProperty("directory_id")
-  Integer directoryId;
 }
