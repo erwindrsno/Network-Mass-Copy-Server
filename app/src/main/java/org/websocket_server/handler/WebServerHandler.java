@@ -171,6 +171,47 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
       }
+    } else if (message.startsWith("metadata/delete/")) {
+      String json = message.substring(16);
+      logger.info("Delete command received.");
+      try {
+        this.context = this.mapper.readValue(json, Context.class);
+
+        Collection<WebSocket> connections = this.server.getConnections();
+        Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
+            .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
+
+        connections.stream()
+            .filter(conn -> conn.isOpen())
+            .filter(conn -> {
+              String ip = IP_EXTRACTOR.extract(conn);
+              return !ip.equals(dotenv.get("LOCAL_WEBSOCKET_IP")) && groupedByIp.containsKey(ip);
+            })
+            .forEach(conn -> {
+              String ip = IP_EXTRACTOR.extract(conn);
+              List<FileAccessInfo> listFaiPerClient = groupedByIp.getOrDefault(ip, Collections.emptyList());
+
+              List<DirectoryAccessInfo> listDaiPerClient = this.context.getListDai().stream()
+                  .filter(dai -> dai.getId().equals(listFaiPerClient.get(0).getDirectoryId()))
+                  .collect(Collectors.toList());
+
+              if (!listFaiPerClient.isEmpty()) {
+                Context clientContext = Context.builder()
+                    .listFai(listFaiPerClient)
+                    .listDai(listDaiPerClient)
+                    .build();
+
+                try {
+                  String toBeSendJson = this.mapper.writeValueAsString(clientContext);
+                  conn.send("server/metadata/delete/" + toBeSendJson);
+                } catch (Exception e) {
+                  logger.error(e.getMessage(), e);
+                }
+              }
+            });
+      } catch (Exception e) {
+        logger.error(e.getMessage(), e);
+      }
     } else if (message.startsWith("to-webclient/refetch")) {
       this.server.getWebClientHandler().getConnection().send("refetch");
     }

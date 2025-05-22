@@ -63,7 +63,6 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
     } else if (message.startsWith("ok/")) {
       try {
         if (message.substring(3).startsWith("copy/")) {
-          logger.info(message.substring(8));
           String strFileId = message.substring(8);
           String receivedIpAddr = conn.getRemoteSocketAddress().getAddress().getHostAddress();
 
@@ -80,12 +79,14 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
       try {
         if (message.substring(4).startsWith("copy/")) {
           Integer directoryId = Integer.parseInt(message.substring(9));
-
           this.server.getWebServerHandler().getConnection().send("fin/copy/" + directoryId);
+
         } else if (message.substring(4).startsWith("takeown/")) {
           Integer directoryId = Integer.parseInt(message.substring(12));
-
           this.server.getWebServerHandler().getConnection().send("fin/takeown/" + directoryId);
+        } else if (message.substring(4).startsWith("delete/")) {
+          Integer directoryId = Integer.parseInt(message.substring(11));
+          this.server.getWebServerHandler().getConnection().send("fin/delete/" + directoryId);
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
