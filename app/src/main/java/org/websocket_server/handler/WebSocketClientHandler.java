@@ -87,6 +87,10 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
         } else if (message.substring(4).startsWith("delete/")) {
           Integer directoryId = Integer.parseInt(message.substring(11));
           this.server.getWebServerHandler().getConnection().send("fin/delete/" + directoryId);
+        } else if (message.substring(4).startsWith("single-delete/")) {
+          Integer fileId = Integer.parseInt(message.substring(18));
+          logger.info("file id to be update deletedAT is : " + fileId);
+          this.server.getWebServerHandler().getConnection().send("fin/single-delete/" + fileId);
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
