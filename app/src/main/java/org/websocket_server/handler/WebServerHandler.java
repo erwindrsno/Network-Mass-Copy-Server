@@ -22,7 +22,6 @@ import org.websocket_server.util.ConnectionHolder;
 import org.websocket_server.util.FileVerifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
 import io.github.cdimascio.dotenv.Dotenv;
