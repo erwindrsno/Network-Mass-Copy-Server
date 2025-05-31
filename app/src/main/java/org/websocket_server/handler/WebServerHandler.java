@@ -258,10 +258,6 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   }
 
   @Override
-  public void handleWebSocketClientString(WebSocket conn, String message) {
-  }
-
-  @Override
   public void setConnection(WebSocket conn, Integer port) {
     this.conn = conn;
     this.port = port;

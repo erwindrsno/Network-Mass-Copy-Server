@@ -8,6 +8,4 @@ public interface MessageHandlerStrategy {
   void handleString(String message);
 
   void handleByte(ByteBuffer buffer);
-
-  void handleWebSocketClientString(WebSocket conn, String message);
 }

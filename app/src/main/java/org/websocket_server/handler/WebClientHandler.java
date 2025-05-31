@@ -104,10 +104,6 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
   }
 
   @Override
-  public void handleWebSocketClientString(WebSocket conn, String message) {
-  }
-
-  @Override
   public WebSocket getConnection() {
     if (this.conn != null) {
       return this.conn;

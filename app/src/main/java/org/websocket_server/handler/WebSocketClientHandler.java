@@ -40,7 +40,6 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
   public void handleString(String message) {
   }
 
-  @Override
   public void handleWebSocketClientString(WebSocket conn, String message) {
     if (message.startsWith("file~")) {
       String[] parts = message.split("CHUNK-ID~");
