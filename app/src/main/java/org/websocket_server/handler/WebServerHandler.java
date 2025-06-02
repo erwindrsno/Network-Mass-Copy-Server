@@ -28,8 +28,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolder {
   private WebSocket conn;
-  private Server server;
   private Integer port;
+  private Server server;
 
   private Context context;
   private List<FileChunkMetadata> listFcm;

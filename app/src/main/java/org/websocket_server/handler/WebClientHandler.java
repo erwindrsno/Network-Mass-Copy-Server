@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import org.websocket_server.Server;
 import org.websocket_server.util.ConnectionHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -47,60 +49,41 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
 
   @Override
   public void handleString(String message) {
+    logger.info(message);
     if (message.startsWith("monitor/")) {
       String labNumber = message.substring(8);
       ObjectMapper mapper = new ObjectMapper();
 
       logger.info("received labNUmber is: " + labNumber);
 
-      try {
-        scheduler.scheduleAtFixedRate(() -> {
-          try {
-            Collection<WebSocket> connections = this.server.getConnections();
-            String ipPrefix = "10.100.7" + labNumber;
+      ScheduledFuture<?>[] futureHolder = new ScheduledFuture<?>[1]; // hack for mutable reference
 
-            List<WebSocket> filteredConnections = connections.stream()
-                .filter(conn -> !IP_EXTRACTOR.extract(conn).equals(this.dotenv.get("LOCAL_WEBSOCKET_IP")))
-                .filter(conn -> IP_EXTRACTOR.extract(conn).startsWith(ipPrefix))
-                .filter(WebSocket::isOpen)
-                .collect(Collectors.toList());
-
-            String json = mapper.writeValueAsString(filteredConnections);
-            this.conn.send("monitor/" + json);
-
-          } catch (Exception e) {
-            e.printStackTrace();
+      futureHolder[0] = scheduler.scheduleAtFixedRate(() -> {
+        try {
+          if (this.getConnection() == null) {
+            futureHolder[0].cancel(false);
+            return;
           }
-        }, 0, 5, TimeUnit.SECONDS);
+          Collection<WebSocket> connections = this.server.getConnections();
+          String ipPrefix = "10.100.7" + labNumber;
 
-        // Collection<WebSocket> connections = this.server.getConnections();
-        // String ipPrefix = "10.100.7" + labNumber;
-        //
-        // connections.stream()
-        // .filter(conn ->
-        // !IP_EXTRACTOR.extract(conn).equals(this.dotenv.get("LOCAL_WEBSOCKET_IP"))) //
-        // exclude
-        // .filter(
-        // conn -> IP_EXTRACTOR.extract(conn).startsWith(ipPrefix)) // filter
-        // .filter(conn -> conn.isOpen())
-        // .collect(Collectors.toList());
-        //
-        // String json = mapper.writeValueAsString(connections);
-        // this.conn.send("monitor/" + json);
-        // .forEach(conn -> {
-        // String ip_addr = IP_EXTRACTOR.extract(conn);
-        // if (conn.isOpen()) {
-        //
-        // openedIpAddressList.add(ip_addr);
-        // } else if (conn.isClosed() && openedIpAddressList.contains(ip_addr)) {
-        // openedIpAddressList.remove(ip_addr);
-        // }
-        // });
+          List<String> filteredConnections = connections.stream()
+              .map(IP_EXTRACTOR::extract) // get IP
+              .filter(ip -> !ip.equals(this.dotenv.get("LOCAL_WEBSOCKET_IP")))
+              .filter(ip -> ip.startsWith(ipPrefix))
+              .collect(Collectors.toList());
 
-      } catch (Exception e) {
-        logger.error(e.getMessage(), e);
-      }
+          mapper.enable(SerializationFeature.INDENT_OUTPUT);
+          String json = mapper.writeValueAsString(filteredConnections);
+          logger.info(json);
+          this.conn.send("monitor/" + json);
+
+        } catch (Exception e) {
+          logger.error(e.getMessage(), e);
+        }
+      }, 2, 3, TimeUnit.SECONDS);
     }
+
   }
 
   @Override
