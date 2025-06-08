@@ -32,6 +32,8 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
   private Logger logger;
   private Dotenv dotenv;
 
+  private ScheduledFuture<?> futureHolder;
+
   @Inject
   public WebClientHandler(Server server, Dotenv dotenv) {
     this.conn = null;
@@ -56,12 +58,14 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
 
       logger.info("received labNUmber is: " + labNumber);
 
-      ScheduledFuture<?>[] futureHolder = new ScheduledFuture<?>[1]; // hack for mutable reference
+      if (futureHolder != null && !futureHolder.isCancelled()) {
+        futureHolder.cancel(false);
+      }
 
-      futureHolder[0] = scheduler.scheduleAtFixedRate(() -> {
+      futureHolder = scheduler.scheduleAtFixedRate(() -> {
         try {
           if (this.getConnection() == null) {
-            futureHolder[0].cancel(false);
+            futureHolder.cancel(false);
             return;
           }
           Collection<WebSocket> connections = this.server.getConnections();
