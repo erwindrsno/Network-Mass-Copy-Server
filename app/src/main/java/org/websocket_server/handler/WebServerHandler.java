@@ -22,6 +22,7 @@ import org.websocket_server.util.ConnectionHolder;
 import org.websocket_server.util.FileVerifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -111,9 +112,13 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   public void handleString(String message) {
     if (message.startsWith("metadata/copy/")) {
       String json = message.substring(14);
+      this.mapper.enable(SerializationFeature.INDENT_OUTPUT);
+      logger.info("RECEIVING JSONNNNN");
+      logger.info(json);
 
       try {
         this.context = this.mapper.readValue(json, Context.class);
+
         this.listFcm = this.context.getListFcm();
 
         this.fileCounter = 0;
