@@ -87,7 +87,6 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
         }
       }, 2, 3, TimeUnit.SECONDS);
     }
-
   }
 
   @Override
