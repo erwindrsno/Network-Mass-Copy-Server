@@ -25,7 +25,7 @@ public class Server extends WebSocketServer {
 
   WebSocket connLocalClient = null;
 
-  ConcurrentHashMap<String, String> otherClients = new ConcurrentHashMap<>();
+  // ConcurrentHashMap<String, String> otherClients = new ConcurrentHashMap<>();
 
   private WebServerHandler webServerHandler;
   private WebClientHandler webClientHandler;
@@ -85,21 +85,12 @@ public class Server extends WebSocketServer {
 
   @Override
   public void onStart() {
-    String myIP = "";
-    try {
-      InetAddress me = InetAddress.getLocalHost();
-      myIP += me.getHostAddress();
-    } catch (Exception e) {
-      logger.error("Error getting localhost IP address");
-      e.printStackTrace();
-    }
-    logger.info("Server started at ws://" + myIP + ":8887");
+    logger.info("Server started at ws://" + this.dotenv.get("LOCAL_WEBSOCKET_IP") + ":" + this.dotenv.get("PORT"));
   }
 
   @Override
   public void onClose(WebSocket conn, int code, String reason, boolean remote) {
     String connIp = conn.getRemoteSocketAddress().getAddress().getHostAddress();
-    String hostname = conn.getRemoteSocketAddress().getHostName();
     int port = conn.getRemoteSocketAddress().getPort();
 
     if (connIp.equals(dotenv.get("LOCAL_WEBSOCKET_IP"))) {
