@@ -70,7 +70,6 @@ public class Server extends WebSocketServer {
     } else if (message.startsWith("client/")) {
       this.webSocketClientHandler.handleWebSocketClientString(conn, message.substring(7));
     }
-
   }
 
   @Override
