@@ -44,8 +44,13 @@ public class WebSocketModule extends AbstractModule {
       @Named("port") int port, WebServerHandler webServerHandler, WebClientHandler webClientHandler,
       WebSocketClientHandler webSocketClientHandler, Dotenv dotenv) {
     try {
-      return new Server(new InetSocketAddress(host, port), webServerHandler, webClientHandler, webSocketClientHandler,
+      Server server = new Server(new InetSocketAddress(host, port), webServerHandler, webClientHandler,
+          webSocketClientHandler,
           dotenv);
+
+      webClientHandler.setServer(server);
+      webServerHandler.setServer(server);
+      return server;
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       return null;

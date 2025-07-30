@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.websocket_server.Server;
-import org.websocket_server.util.ConnectionHolder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -23,22 +21,20 @@ import com.google.inject.Inject;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolder {
+public class WebClientHandler extends ConnectionHolder implements MessageHandlerStrategy {
   private WebSocket conn;
   private Integer port;
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-  private Server server;
   private Logger logger;
   private Dotenv dotenv;
 
   private ScheduledFuture<?> futureHolder;
 
   @Inject
-  public WebClientHandler(Server server, Dotenv dotenv) {
+  public WebClientHandler(Dotenv dotenv) {
     this.conn = null;
     this.port = null;
-    this.server = server;
     this.logger = LoggerFactory.getLogger(WebServerHandler.class);
     this.dotenv = dotenv;
   }
@@ -68,7 +64,7 @@ public class WebClientHandler implements MessageHandlerStrategy, ConnectionHolde
             futureHolder.cancel(false);
             return;
           }
-          Collection<WebSocket> connections = this.server.getConnections();
+          Collection<WebSocket> connections = getServer().getConnections();
           String ipPrefix = "10.100.7" + labNumber;
 
           List<String> filteredConnections = connections.stream()

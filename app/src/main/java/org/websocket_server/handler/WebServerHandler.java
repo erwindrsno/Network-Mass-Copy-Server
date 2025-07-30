@@ -13,12 +13,10 @@ import java.util.stream.Collectors;
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.websocket_server.Server;
 import org.websocket_server.model.Context;
 import org.websocket_server.model.DirectoryAccessInfo;
 import org.websocket_server.model.FileAccessInfo;
 import org.websocket_server.model.FileChunkMetadata;
-import org.websocket_server.util.ConnectionHolder;
 import org.websocket_server.util.FileVerifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,10 +25,9 @@ import com.google.inject.Inject;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolder {
+public class WebServerHandler extends ConnectionHolder implements MessageHandlerStrategy {
   private WebSocket conn;
   private Integer port;
-  private Server server;
 
   private Context context;
   private List<FileChunkMetadata> listFcm;
@@ -43,10 +40,9 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
   Dotenv dotenv;
 
   @Inject
-  public WebServerHandler(FileVerifier fileVerifier, Server server,
+  public WebServerHandler(FileVerifier fileVerifier,
       Dotenv dotenv) {
     this.conn = null;
-    this.server = server;
     this.port = null;
     this.context = null;
     this.fileVerifier = fileVerifier;
@@ -92,7 +88,7 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
           logger.info("All files received.");
 
           this.sendFilesToClients();
-          this.server.getWsClientHandler().setContext(this.context);
+          getServer().getWsClientHandler().setContext(this.context);
           return;
         } else {
           this.fileCounter++;
@@ -140,7 +136,7 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       try {
         this.context = this.mapper.readValue(json, Context.class);
 
-        Collection<WebSocket> connections = this.server.getConnections();
+        Collection<WebSocket> connections = getServer().getConnections();
         Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
             .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
 
@@ -181,7 +177,7 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       try {
         this.context = this.mapper.readValue(json, Context.class);
 
-        Collection<WebSocket> connections = this.server.getConnections();
+        Collection<WebSocket> connections = getServer().getConnections();
         Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
             .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
 
@@ -222,7 +218,7 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
       try {
         this.context = this.mapper.readValue(json, Context.class);
 
-        Collection<WebSocket> connections = this.server.getConnections();
+        Collection<WebSocket> connections = getServer().getConnections();
         Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
             .collect(Collectors.groupingBy(FileAccessInfo::getIp_address));
 
@@ -258,34 +254,12 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
         logger.error(e.getMessage(), e);
       }
     } else if (message.startsWith("to-webclient/refetch")) {
-      this.server.getWebClientHandler().getConnection().send("refetch");
+      getServer().getWebClientHandler().getConnection().send("refetch");
     }
-  }
-
-  @Override
-  public void setConnection(WebSocket conn, Integer port) {
-    this.conn = conn;
-    this.port = port;
-  }
-
-  @Override
-  public WebSocket getConnection() {
-    if (this.conn != null) {
-      return this.conn;
-    }
-    return null;
-  }
-
-  @Override
-  public Integer getPortNumber() {
-    if (this.port != null) {
-      return this.port;
-    }
-    return null;
   }
 
   public void sendFilesToClients() {
-    Collection<WebSocket> connections = this.server.getConnections();
+    Collection<WebSocket> connections = getServer().getConnections();
 
     try {
       Map<String, List<FileAccessInfo>> groupedByIp = this.context.getListFai().stream()
@@ -323,6 +297,27 @@ public class WebServerHandler implements MessageHandlerStrategy, ConnectionHolde
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     }
+  }
 
+  @Override
+  public void setConnection(WebSocket conn, Integer port) {
+    this.conn = conn;
+    this.port = port;
+  }
+
+  @Override
+  public WebSocket getConnection() {
+    if (this.conn != null) {
+      return this.conn;
+    }
+    return null;
+  }
+
+  @Override
+  public Integer getPortNumber() {
+    if (this.port != null) {
+      return this.port;
+    }
+    return null;
   }
 }

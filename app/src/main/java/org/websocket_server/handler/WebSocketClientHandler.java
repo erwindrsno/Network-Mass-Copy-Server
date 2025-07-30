@@ -7,7 +7,6 @@ import java.util.Map;
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.websocket_server.Server;
 import org.websocket_server.model.Context;
 import org.websocket_server.model.FileChunkMetadata;
 
@@ -15,16 +14,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 
-public class WebSocketClientHandler implements MessageHandlerStrategy {
+public class WebSocketClientHandler extends ConnectionHolder implements MessageHandlerStrategy {
   private Logger logger;
-  private Server server;
   private Context context;
   private ObjectMapper mapper;
 
   @Inject
-  public WebSocketClientHandler(Server server) {
+  public WebSocketClientHandler() {
     this.logger = LoggerFactory.getLogger(WebServerHandler.class);
-    this.server = server;
     this.context = null;
     this.mapper = new ObjectMapper();
     this.mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -69,7 +66,7 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
           jsonMap.put("file_id", strFileId);
           jsonMap.put("ip_addr", receivedIpAddr);
           String json = this.mapper.writeValueAsString(jsonMap);
-          this.server.getWebServerHandler().getConnection().send("ok/" + json);
+          getServer().getWebServerHandler().getConnection().send("ok/" + json);
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
@@ -78,18 +75,18 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
       try {
         if (message.substring(4).startsWith("copy/")) {
           Integer directoryId = Integer.parseInt(message.substring(9));
-          this.server.getWebServerHandler().getConnection().send("fin/copy/" + directoryId);
+          getServer().getWebServerHandler().getConnection().send("fin/copy/" + directoryId);
 
         } else if (message.substring(4).startsWith("takeown/")) {
           Integer directoryId = Integer.parseInt(message.substring(12));
-          this.server.getWebServerHandler().getConnection().send("fin/takeown/" + directoryId);
+          getServer().getWebServerHandler().getConnection().send("fin/takeown/" + directoryId);
         } else if (message.substring(4).startsWith("delete/")) {
           Integer directoryId = Integer.parseInt(message.substring(11));
-          this.server.getWebServerHandler().getConnection().send("fin/delete/" + directoryId);
+          getServer().getWebServerHandler().getConnection().send("fin/delete/" + directoryId);
         } else if (message.substring(4).startsWith("single-delete/")) {
           Integer fileId = Integer.parseInt(message.substring(18));
           logger.info("file id to be update deletedAT is : " + fileId);
-          this.server.getWebServerHandler().getConnection().send("fin/single-delete/" + fileId);
+          getServer().getWebServerHandler().getConnection().send("fin/single-delete/" + fileId);
         }
       } catch (Exception e) {
         logger.error(e.getMessage(), e);
@@ -99,5 +96,19 @@ public class WebSocketClientHandler implements MessageHandlerStrategy {
 
   public void setContext(Context context) {
     this.context = context;
+  }
+
+  @Override
+  public void setConnection(WebSocket conn, Integer port) {
+  }
+
+  @Override
+  public WebSocket getConnection() {
+    return null;
+  }
+
+  @Override
+  public Integer getPortNumber() {
+    return null;
   }
 }
