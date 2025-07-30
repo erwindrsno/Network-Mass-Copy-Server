@@ -1,10 +1,7 @@
 package org.websocket_server;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.websocket_server.handler.WebClientHandler;
 import org.websocket_server.handler.WebServerHandler;
@@ -15,30 +12,21 @@ import org.java_websocket.server.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class Server extends WebSocketServer {
   Logger logger = LoggerFactory.getLogger(Server.class);
-  Scanner sc = new Scanner(System.in);
 
   WebSocket connLocalClient = null;
-
-  // ConcurrentHashMap<String, String> otherClients = new ConcurrentHashMap<>();
 
   private WebServerHandler webServerHandler;
   private WebClientHandler webClientHandler;
   private WebSocketClientHandler webSocketClientHandler;
   private Dotenv dotenv;
 
-  public Server(InetSocketAddress address) {
-    super(address);
-  }
-
-  @Inject
-  public void injectDependencies(WebServerHandler webServerHandler, WebClientHandler webClientHandler,
+  public Server(InetSocketAddress address, WebServerHandler webServerHandler, WebClientHandler webClientHandler,
       WebSocketClientHandler webSocketClientHandler, Dotenv dotenv) {
+    super(address);
     this.webServerHandler = webServerHandler;
     this.webClientHandler = webClientHandler;
     this.webSocketClientHandler = webSocketClientHandler;

@@ -40,25 +40,15 @@ public class WebSocketModule extends AbstractModule {
 
   @Provides
   @Singleton
-  public Server provideServer(Logger logger, @Named("host") String host, @Named("port") int port) {
+  public Server provideServer(Logger logger, @Named("host") String host,
+      @Named("port") int port, WebServerHandler webServerHandler, WebClientHandler webClientHandler,
+      WebSocketClientHandler webSocketClientHandler, Dotenv dotenv) {
     try {
-      return new Server(new InetSocketAddress(host, port));
+      return new Server(new InetSocketAddress(host, port), webServerHandler, webClientHandler, webSocketClientHandler,
+          dotenv);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
       return null;
     }
   }
-
-  // @Provides
-  // @Singleton
-  // public WebSocketServer provideWebSocketServer(Server providedServer, Logger
-  // logger) {
-  // try {
-  // WebSocketServer server = providedServer;
-  // return server;
-  // } catch (Exception e) {
-  // logger.error(e.getMessage(), e);
-  // return null;
-  // }
-  // }
 }
