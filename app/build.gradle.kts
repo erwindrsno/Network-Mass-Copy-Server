@@ -24,9 +24,9 @@ dependencies {
     implementation("com.google.inject:guice:7.0.0")
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
     // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     implementation("com.google.protobuf:protobuf-java:4.30.0")
 
     // This dependency is used by the application.
@@ -55,10 +55,10 @@ tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 
-    // testLogging {
-    //     events("passed", "skipped", "failed", "standardOut", "standardError")
-    //     showStandardStreams = true
-    // }
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        showStandardStreams = true
+    }
 }
 
 tasks.named<JavaExec>("run") {
